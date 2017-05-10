@@ -15,4 +15,5 @@ document.body.addEventListener('dblclick', function (evt) {
     ctx.drawImage(bigImg, 0, 0,bigImg.clientWidth,bigImg.clientHeight);
     var imgPixel = ctx.getImageData(2,2,1,1);
     console.log(imgPixel);
+    
 });
