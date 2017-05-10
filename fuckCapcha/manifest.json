@@ -1,0 +1,17 @@
+{
+  "name": "crackCaptcha",
+  "version": "0.1",
+  "manifest_version": 2,
+  "description": "crack tencet captcha",
+  "background": {
+    "page": "test.html"
+  },
+  "permissions": ["tabs", "http://*.captcha.qq.com/*","https://*.qq.com/*","http://*.qq.com/*","http://*.qcloud.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["http://*.captcha.qq.com/*","https://*.qq.com/*","http://*.qq.com/*","http://*.qcloud.com/*"],
+      "js": ["crack.js"],
+      "run_at": "document_end"
+    }
+  ]
+}
