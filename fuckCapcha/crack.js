@@ -13,6 +13,9 @@ var linePixels1 = [];
 var linePixels2 = [];
 var linePixels3 = [];
 
+var positionX = 0;
+var positionY = 0;
+
 document.body.appendChild(infoShowDiv);
 document.body.appendChild(canvas);
 
@@ -26,7 +29,9 @@ function getTotalBlockSize() {
 
     return {
         height: totalBlock.clientHeight,
-        width: totalBlock.clientWidth
+        width: totalBlock.clientWidth,
+        naturalHeight: totalBlock.naturalHeight,
+        naturalWidth: totalBlock.naturalWidth
     };
 }
 
@@ -36,14 +41,57 @@ function getSlideBlockSize() {
         console.warn('totalBlock is null');
         return null;
     }
-
     return {
+        naturalHeight: slideBlock.naturalHeight,
+        naturalWidth: slideBlock.naturalWidth,
         height: slideBlock.clientHeight,
         width: slideBlock.clientWidth,
         top: parseInt(slideBlock.style.top, 10)
     }
 }
+//两个黄色边框的宽度
+var sliderDistance = 84;
+var templateColor = [255, 255, 160];
 
+function compareTwoWeightValue(a, b) {
+    if (a.value < b.value) {
+        return -1;
+    }
+    if (a.value > b.value) {
+        return 1;
+    }
+    return 0;
+}
+
+function compareTwoArray(a, b) {
+    if (a[0] < b[0]) {
+        return -1;
+    }
+    if (a[0] > b[0]) {
+        return 1;
+    }
+    return 0;
+}
+
+function findPosition(data) {
+    var start = 0;
+    var end = 0;
+    var records = [];
+    endPosition = data.length - sliderDistance;
+    for (var index = 0; index < endPosition; ++index) {
+        item = data[index];
+        itemOtherSide = data[index + sliderDistance];
+        var value = (item[0] - templateColor[0]) * (item[0] - templateColor[0]) + (item[1] - templateColor[1]) * (item[1] - templateColor[1]) +
+            (item[2] - templateColor[2]) * (item[2] - templateColor[2]);
+        value += (itemOtherSide[0] - templateColor[0]) * (itemOtherSide[0] - templateColor[0]) + (itemOtherSide[1] - templateColor[1]) * (itemOtherSide[1] - templateColor[1]) +
+            (itemOtherSide[2] - templateColor[2]) * (itemOtherSide[2] - templateColor[2]);
+        records.push({ pos: index, value: value });
+    }
+    records.sort(compareTwoWeightValue);
+    start = records[0].pos;
+    end = start + sliderDistance;
+    return [start, end];
+};
 document.body.addEventListener('dblclick', function(evt) {
     //  console.log('evt from crack.js');
     // console.log(evt);
@@ -59,49 +107,86 @@ document.body.addEventListener('dblclick', function(evt) {
     console.log('big Img：');
     console.log(bigImg);
 
-    canvas.style.height = '320px';
-    canvas.style.width = '560px';
+    canvas.height = 320;
+    canvas.width = 560;
 
     var ctx = canvas.getContext('2d');
-    ctx.drawImage(bigImg, 0, 0, bigImg.naturalWidth, bigImg.naturalHeight, 0, 0, totalBlockSize.width, totalBlockSize.height);
+    ctx.drawImage(bigImg, 0, 0, bigImg.naturalWidth, bigImg.naturalHeight, 0, 0, bigImg.naturalWidth, bigImg.naturalHeight);
+    // ctx.drawImage(bigImg, 0, 0, 280, 160, 0, 0, 280, 160);
     linePixels1.length = 0;
     linePixels2.length = 0;
     linePixels3.length = 0;
     var naturalTop = slideBlockSize.top * 2
-    var processedTop1 = slideBlockSize.top + slideBlockSize.height * (2 / 7);
-    var processedTop2 = slideBlockSize.top + slideBlockSize.height / 2;
-    var processedTop3 = slideBlockSize.top + slideBlockSize.height * (5 / 7);
-    for (var x = 0; x < totalBlockSize.width; ++x) {
+    positionY = naturalTop;
+    var processedTop1 = naturalTop + slideBlockSize.naturalHeight * (2 / 7);
+    var processedTop2 = naturalTop + slideBlockSize.naturalHeight / 2;
+    var processedTop3 = naturalTop + slideBlockSize.naturalHeight * (5 / 7);
+    for (var x = 0; x < totalBlockSize.naturalWidth; ++x) {
         var imgPixel1 = ctx.getImageData(x, processedTop1, 1, 1);
         var imgPixel2 = ctx.getImageData(x, processedTop2, 1, 1);
         var imgPixel3 = ctx.getImageData(x, processedTop3, 1, 1);
 
-        linePixels1.push(imgPixel1);
-        linePixels2.push(imgPixel2);
-        linePixels3.push(imgPixel3);
+        if (imgPixel1.height == 2) {
+
+        }
+        linePixels1.push([imgPixel1.data[0], imgPixel1.data[1], imgPixel1.data[2], imgPixel1.data[3]]);
+        linePixels2.push([imgPixel2.data[0], imgPixel2.data[1], imgPixel2.data[2], imgPixel2.data[3]]);
+        linePixels3.push([imgPixel3.data[0], imgPixel3.data[1], imgPixel3.data[2], imgPixel3.data[3]]);
+        // linePixels2.push(imgPixel2);
+        // linePixels3.push(imgPixel3);
     }
-    console.log(linePixels1);
-    console.log(linePixels2);
-    console.log(linePixels3);
+
+    var pos1 = findPosition(linePixels1);
+    var pos2 = findPosition(linePixels2);
+    var pos3 = findPosition(linePixels3);
+    console.log('-----------position-----------------');
+    console.log(pos1);
+    console.log(pos2);
+    console.log(pos3);
+    console.log('------------------------------------');
+
+    var positions = [pos1, pos2, pos3];
+    positions = positions.sort(compareTwoArray);
+    console.log('------------排序---------------------');
+    console.log(positions);
+    console.log('------------------------------------');
+
+    if (Math.abs(positions[1][0] - positions[0][0]) > Math.abs(positions[2][0] - positions[1][0])) {
+        positionX = parseInt((positions[2][0] + positions[1][0]) / 2, 10);
+    } else {
+        positionX = parseInt((positions[1][0] + positions[0][0]) / 2, 10);
+    }
+
+    console.log('--------get the last position------');
+    console.log('X:' + positionX + ', Y:' + positionY);
+    console.log('------------------------------------');
+
+    // linePixels1 = ctx.getImageData(0, processedTop1, 560, 1);
+    // linePixels2 = ctx.getImageData(0, processedTop2, 560, 1);
+    // linePixels3 = ctx.getImageData(0, processedTop3, 560, 1);
+
+    // console.log(linePixels1);
+    // console.log(linePixels2);
+    // console.log(linePixels3);
 
     ctx.beginPath();
-    ctx.moveTo(0, slideBlockSize.top);
-    ctx.lineTo(280, slideBlockSize.top);
+    ctx.moveTo(0, naturalTop);
+    ctx.lineTo(560, naturalTop);
     ctx.stroke();
 
     ctx.beginPath();
     ctx.moveTo(0, processedTop1);
-    ctx.lineTo(280, processedTop1);
+    ctx.lineTo(560, processedTop1);
     ctx.stroke();
 
     ctx.beginPath();
     ctx.moveTo(0, processedTop2);
-    ctx.lineTo(280, processedTop2);
+    ctx.lineTo(560, processedTop2);
     ctx.stroke();
 
     ctx.beginPath();
     ctx.moveTo(0, processedTop3);
-    ctx.lineTo(280, processedTop3);
+    ctx.lineTo(560, processedTop3);
     ctx.stroke();
 
     slideBlock = document.getElementById('slideBlock');
