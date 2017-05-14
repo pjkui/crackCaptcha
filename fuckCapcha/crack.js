@@ -1,7 +1,7 @@
 document.body.onload = function(evt) {
     console.log('evt from crack.js');
     console.log(evt);
-    alert(1243);
+    console.log('Inject Success!');
 }
 var slideBlock = null;
 var infoShowDiv = document.createElement('div');
@@ -193,5 +193,96 @@ document.body.addEventListener('dblclick', function(evt) {
 
     console.log('slideTop' + slideBlockSize.top);
 
+    doOne(positionX);
 
 });
+var srcPosition = {};
+var desPosition = {};
+
+function foolServer() {
+
+    var data = {
+        "mousemove": [{ "t": 1, "x": 28, "y": 192 }], //multiple 
+        "mouseclick": [{ "t": 665, "x": 143, "y": 203 }],
+        "begintime": 1494692176,
+        "endtime": 1494692853,
+        "keyUpCnt": 0,
+        "keyUpValue": [],
+        "mouseUpValue": [{ "t": 30, "x": 181, "y": 195 }],
+        "mouseUpCnt": 1,
+        "mouseDownValue": [{ "t": 1, "x": 35, "y": 189 }],
+        "mouseDownCnt": 1,
+        "orientation": [{ "x": 0, "y": 0, "z": 0 }],
+        "bSimutor": 0,
+        "coordinate": [10, 9, 0.5],
+        "clientType": "2",
+        "slideValue": [
+            [47, 193, 1], //multiple
+        ],
+        "trycnt": 1,
+        "refreshcnt": 0
+    };
+    var time1 = parseInt(new Date().getTime() / 1000);
+    data.begintime = time1;
+    data.endtime = time1 + 1;
+    for (var i = 0; i < positionX; i += 20) {
+        data.slideValue.push(20, 0, 20);
+        data.mousemove.push({ t: i, "x": i, "y": 195 });
+    }
+    data.mouseUpValue[0].x = positionX;
+    TDC.setData(data);
+}
+
+function doOne(xPos) {
+    // var evt = document.createEvent("MouseEvents");
+    // evt.initEvent("mouseup", true, true);
+    // document.getElementById("x").dispatchEvent(evt);
+    xPos = xPos || 140;
+    document.xPos = xPos;
+    var strX = xPos + 'px';
+    $('#slide_bar_head').trigger('mousedown')
+    $('#slide_bar_head').css('left', strX)
+    $('#slideBlock').css('left', strX)
+    $('#slide_bar_head').trigger('mouseup')
+}
+
+function receiveMessage(event) {
+    // Do we trust the sender of this message?  (might be
+    // different from what we originally opened, for example).
+    if (event.origin !== "http://example.org")
+        return;
+
+    // event.source is popup
+    // event.data is "hi there yourself!  the secret response is: rheeeeet!"
+}
+window.addEventListener("message", receiveMessage, false);
+
+//window.parent.window.postMessage('hee','http://game.captcha.qq.com/hslj/html/hslj/game_vcode.html?session_id=2190970180023677415&uin=510124997')
+setTimeout(function() {
+    // Handler for .ready() called.
+
+    if (document.ajaxInj == null) {
+        console.log('-----------ajax------------------');
+        console.log($.ajax);
+        console.log('------------------------------------');
+        document.ajaxInj = $.ajax;
+        $.ajax = function(a, b) {
+                console.log('ajax');
+                console.log(a);
+                console.log(b);
+                foolServer();
+
+                if (document.xPos != -1) {
+                    if (a && a.data && a.data.ans) {
+                        a.data.bbbbbd = TDC.getData(!0);
+                        a.data.ans = document.xPos + ',' + a.data.ans.split(',')[1];
+                        document.xPos = -1;
+                    }
+                }
+                document.ajaxInj(a, b);
+            }
+            //     monitorEvents(document);
+    }
+}, 100);
+
+document.xPos = -1;
