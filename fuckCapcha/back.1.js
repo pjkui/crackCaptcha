@@ -9,11 +9,11 @@
 // @grant        none
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
     // Your code here...
-    document.body.onload = function(evt) {
+    document.body.onload = function (evt) {
         console.log('evt from crack.js');
         console.log(evt);
         console.log('Inject Success!');
@@ -32,9 +32,10 @@
     var positionY = 0;
     var endPosition = null;
 
-    document.body.appendChild(infoShowDiv);
-    document.body.appendChild(canvas);
+    window.startPosX = 45;
+    window.startPosY = 195;
 
+    document.body.appendChild(infoShowDiv);
 
     function getTotalBlockSize() {
         var totalBlock = document.getElementById('totalBlock');
@@ -101,7 +102,10 @@
                 (item[2] - templateColor[2]) * (item[2] - templateColor[2]);
             value += (itemOtherSide[0] - templateColor[0]) * (itemOtherSide[0] - templateColor[0]) + (itemOtherSide[1] - templateColor[1]) * (itemOtherSide[1] - templateColor[1]) +
                 (itemOtherSide[2] - templateColor[2]) * (itemOtherSide[2] - templateColor[2]);
-            records.push({ pos: index, value: value });
+            records.push({
+                pos: index,
+                value: value
+            });
         }
         records.sort(compareTwoWeightValue);
         start = records[0].pos;
@@ -111,19 +115,13 @@
     document.body.addEventListener('dblclick', crackIt);
 
     function process(evt) {
-        //  console.log('evt from crack.js');
-        // console.log(evt);
-        // alert(1233432);
-        // console.log(bigImg);
 
         totalBlockSize = getTotalBlockSize();
         slideBlockSize = getSlideBlockSize();
 
-        console.log(totalBlockSize);
+        // console.log(totalBlockSize);
 
         var bigImg = document.getElementsByClassName('big img')[0];
-        console.log('big Img：');
-        console.log(bigImg);
         if (bigImg == null) {
             setTimeout(process, 50);
             return;
@@ -131,6 +129,8 @@
 
         canvas.height = 320;
         canvas.width = 560;
+        document.body.appendChild(canvas);
+
 
         var ctx = canvas.getContext('2d');
         ctx.drawImage(bigImg, 0, 0, bigImg.naturalWidth, bigImg.naturalHeight, 0, 0, bigImg.naturalWidth, bigImg.naturalHeight);
@@ -216,42 +216,52 @@
         console.log('slideTop' + slideBlockSize.top);
 
         window.positionX = positionX;
+        document.body.removeChild(canvas);        
         return positionX;
     };
     window.processImg = process;
     var srcPosition = {};
     var desPosition = {};
 
-    function move(posX) {
+    function move(posX, posY) {
+        posY = posY || 195;
         var mousemoveevent4 = jQuery.Event("mousemove", {
             which: 1,
             pageX: posX,
-            pageY: 195
+            pageY: posY
         });
         $('#slide_bar_head').trigger(mousemoveevent4);
         return 1;
     }
 
-    function keydown() {
+    function keydown(posX, posY) {
+        posX = posX || 45;
+
+        posY = posY || 195;
+
         var mousedownevent = jQuery.Event("mousedown", {
             which: 1,
-            pageX: 45,
-            pageY: 195
+            pageX: posX,
+            pageY: posY
         });
         $('#slide_bar_head').trigger(mousedownevent);
         return 1;
     }
 
-    function keyup(posX) {
+    function keyup(posX, posY) {
+        posX = posX || 200;
+        posY = posY || 195;
         var mouseupevent = jQuery.Event("mouseup", {
             which: 1,
             pageX: posX,
-            pageY: 195
+            pageY: posY
         });
         $('#slide_bar_head').trigger(mouseupevent);
         return 1;
     }
 
+
+    //process Image
     function step1() {
         var rt = 0;
         try {
@@ -262,52 +272,63 @@
         return rt;
     }
 
+
+    //start : keydown
     function step2() {
         var ret = 0;
+        startPosX = parseInt(40 + 10 * Math.random());
+        startPosY = parseInt(190 + 10 * Math.random());
         try {
-            ret = keydown();
+            ret = keydown(startPosX, startPosY);
         } catch (e) {
             console.error('keydown error:' + e);
         }
         return ret;
     }
 
+    //first move slider
     function step3() {
         var ret = 0;
         try {
-            ret = move(45);
+            ret = move(startPosX, startPosY);
         } catch (e) {
             console.error('move45 error:' + e);
         }
         return ret;
     }
-
+    //end move slider
     function step4() {
         var ret = 0;
         try {
-            ret = move(parseInt(window.positionX / 2 + 35));
+            //end positionY with random value 
+            startPosY = parseInt(190 + 10 * Math.random());
+
+            ret = move(parseInt(window.positionX / 2 + 35), startPosY);
         } catch (e) {
             console.error('move error:' + e);
         }
         return ret;
     }
 
+    // end keyup
     function step5() {
         var ret = 0;
         try {
-            ret = keyup(parseInt(window.positionX / 2 + 35));
+            ret = keyup(parseInt(window.positionX / 2 + 35), startPosY);
         } catch (e) {
             console.error('move error:' + e);
         }
         return ret;
     }
 
+    //中间随机移动
     function stepRand() {
         var ret = 0;
         try {
-            var rndPos = parseInt(80 * Math.random() + window.stepNum * 10);
-            ret = move(rndPos);
-            console.log('random move :' + rndPos);
+            var rndPosX = parseInt(30 * Math.random() + window.stepNum * (positionX / 2 + 30) / stepsFunc.length);
+            var rndPosY = parseInt(10 * Math.random() + 190);
+            ret = move(rndPosX, rndPosY);
+            console.log('random move :' + rndPosX + ':' + rndPosY);
 
         } catch (e) {
             console.error('move error:' + e);
@@ -319,35 +340,60 @@
         return 1;
     }
     window.stepNum = 0;
-    window.stepsFunc = [step1, step2, step3, stepRand, stepRand, step4, step5, stepNoop];
+    window.stepsFunc = [step1, step2, step3, stepRand, stepRand, stepRand, step4, step5, stepNoop];
     window.count = 0;
 
     function crackIt() {
         // window.stepNum = window.stepNum % 5;
+        if (stepNum === 0) {
+            //generate random steps
+            window.stepsFunc = [step1, step2, step3, step4, step5, stepNoop];
+            var randStep = parseInt(30 * Math.random()+50);
+            for (var i = 0; i < randStep; ++i) {
+                window.stepsFunc.splice(3, 0, stepRand);
+            }
+            console.log("random path:" + stepsFunc.length);
+        }
+
         if (window.stepNum < stepsFunc.length) {
             var value = window.stepsFunc[window.stepNum]();
             if (value > 0) {
                 window.stepNum++;
             }
         } else {
-            $("#reload").click();
+            // $("#reload").click();
             window.stepNum = 0;
         }
         window.count++;
-        if (window.count > 10) {
-            window.parent.window.postMessage('hhh', 'http://game.captcha.qq.com/hslj/html/hslj/game_vcode.html?session_id=2190970180023677415&uin=510124997')
-                //parent reload
-        }
-        setTimeout(function() { crackIt() }, 300);
+        if (window.error12Count && window.error12Count > 2) {
+            // window.parent.window.postMessage('refresh', 'http://game.captcha.qq.com');
+            parent.postMessage('reloadIt', 'http://game.captcha.qq.com')
+            //parent reload
+            btn1.style.color = 'red';
+        } else {
 
+            if (stepNum > 3 && stepNum < stepsFunc.length - 3) {
+                var time = parseInt(80 * Math.random+100);
+                setTimeout(function () {
+                    crackIt();
+                }, time);
+            } else {
+                setTimeout(function () {
+                    crackIt();
+                }, 450);
+            }
+        }
     }
 
-    var btn1 = document.createElement('button');
+    var btn1 = document.createElement('div');
     btn1.style.position = "absolute";
     btn1.innerText = "crack";
     btn1.style.left = '10px';
     btn1.style.top = '10px';
-    btn1.addEventListener('click', function(evt) { crackIt() });
+    btn1.addEventListener('click', function (evt) {
+        crackIt();
+    });
+    window.btn1 = btn1;
     document.body.appendChild(btn1);
     window.crackIt = crackIt;
     window.step1 = step1;
@@ -359,119 +405,60 @@
     window.keydown = keydown;
     window.keyup = keyup;
     window.move = move;
-    // function foolServer() {
-
-    //     var data = {
-    //         "mousemove": [{ "t": 0, "x": 28, "y": 195 }], //multiple
-    //         "mouseclick": [{ "t": 1, "x": 143, "y": 195 }],
-    //         "begintime": 1494692176,
-    //         "endtime": 1494692853,
-    //         "keyUpCnt": 0,
-    //         "keyUpValue": [],
-    //         "mouseUpValue": [{ "t": 2, "x": 181, "y": 195 }],
-    //         "mouseUpCnt": 1,
-    //         "mouseDownValue": [{ "t": 1, "x": 35, "y": 195 }],
-    //         "mouseDownCnt": 1,
-    //         "orientation": [{ "x": 0, "y": 0, "z": 0 }],
-    //         "bSimutor": 0,
-    //         //"coordinate": [10, 9, 0.5],
-    //         //"clientType": "2",
-    //         "slideValue": [
-    //             [35, 195, 1], //multiple
-    //         ],
-    //         //"trycnt": 1,
-    //         "refreshcnt": 0
-    //     };
-    //     var time1 = parseInt(new Date().getTime() / 1000);
-    //     data.begintime = time1;
-    //     data.endtime = time1 + 1;
-    //     //for (var i = 20; i < positionX; i += 40) {
-    //     //    data.slideValue.push([40, 0, 20]);
-    //     //    data.mousemove.push({ t: i/2, "x": i, "y": 195 });
-    //     //}
-    //     data.slideValue.push([parseInt(positionX / 2 - 35), 0, 10]);
-    //     data.mousemove.push({ t: 1, "x": parseInt(positionX / 2), "y": 195 });
-    //     data.mouseUpValue[0].x = parseInt(positionX / 2);
-    //     TDC.setData(data);
-    // }
-
-    // document.doOne = doOne;
-
-    // function doOne(xPos) {
-    //     // var evt = document.createEvent("MouseEvents");
-    //     // evt.initEvent("mouseup", true, true);
-    //     // document.getElementById("x").dispatchEvent(evt);
-    //     xPos = xPos || 140;
-    //     document.xPos = xPos;
-    //     var strX = (xPos / 2 - 10) + 'px';
-    //     // var $el = $(selector);
-    //     // var offset = $el.offset();
-    //     var mousedownevent = jQuery.Event("mousedown", {
-    //         which: 1,
-    //         pageX: 45,
-    //         pageY: 195
-    //     });
-    //     var mouseupevent = jQuery.Event("mousedown", {
-    //         which: 1,
-    //         pageX: xPos / 2 - 10,
-    //         pageY: 195
-    //     });
-    //     // $el.trigger(event);
-
-    //     // $('#slide_bar_head').trigger('mousedown');
-    //     $('#slide_bar_head').trigger(mousedownevent);
-    //     $('#slide_bar_head').css('left', strX);
-    //     $('#slideBlock').css('left', strX);
-    //     // $('#slide_bar_head').trigger('mouseup');
-    //     $('#slide_bar_head').trigger(mouseupevent);
-    //     // foolServer();
-    // }
-
-    // function receiveMessage(event) {
-    //     // Do we trust the sender of this message?  (might be
-    //     // different from what we originally opened, for example).
-    //     if (event.origin !== "http://example.org")
-    //         return;
-
-    //     // event.source is popup
-    //     // event.data is "hi there yourself!  the secret response is: rheeeeet!"
-    // }
-    // window.addEventListener("message", receiveMessage, false);
-
-    // window.parent.window.postMessage('hee', 'http://game.captcha.qq.com/hslj/html/hslj/game_vcode.html?session_id=2190970180023677415&uin=510124997')
-    // // setTimeout(function() {
-    // // Handler for .ready() called.
-
-    // if (true || document.ajaxInj === null) {
-    //     console.log('-----------ajax------------------');
-    //     console.log($.ajax);
-    //     console.log('------------------------------------');
-    //     document.ajaxInj = $.ajax;
-    //     $.ajax = function(a, b) {
-    //         console.log('ajax');
-    //         console.log(a);
-    //         console.log(b);
-
-    //         // if (document.xPos != -1) {
-
-    //         //     if (a && a.data && a.data.ans) {
-
-    //         //         // for (var key in a.data) {
-    //         //         //     if (typeof a.data[key] == 'string' && (a.data[key][a.data[key].length - 1] == '=' || a.data[key].indexOf('%3D') == a.data[key].length - 3)) {
-    //         //         //         a.data[key] = TDC.getData(!0);
-    //         //         //     }
-    //         //         // }
-    //         //         a.data.ans = document.xPos + ',' + a.data.ans.split(',')[1];
-    //         //         document.xPos = -1;
-    //         //     }
-    //         // }
-    //         document.ajaxInj(a, b);
-    //     };
-    //     //     monitorEvents(document);
-    // }
-    // //   }, 100);
-
     document.xPos = -1;
-    setTimeout(crackIt, 200);
+
+    setTimeout(crackIt, 500);
+
+    if (window.ajaxInj == null) {
+        console.log('-----------ajax------------------');
+        console.log($.ajax);
+        console.log('------------------------------------');
+        window.ajaxInj = $.ajax;
+        $.ajax = function (a, b) {
+            console.log('ajax');
+            console.log(a);
+            console.log(b);
+            // foolServer();
+
+            // if (window.xPos != -1) {
+            //     if (a && a.data && a.data.ans) {
+            //         a.data.bbbbbd = TDC.getData(!0);
+            //         a.data.ans = window.xPos + ',' + a.data.ans.split(',')[1];
+            //         window.xPos = -1;
+            //     }
+            // }
+            if (a.success.toString().indexOf('aaabbb') < 0) {
+                var successHd = a.success;
+                a.success = function (data) {
+                    var aaabbb = data;
+                    if (aaabbb.errorCode != '0') {
+                        window.errorCount++;
+                        if (aaabbb.errorCode == '12') {
+                            if (window.error12Count == null) {
+                                window.error12Count = 0;
+                                btn1.style.color = '#f00';
+
+                            }
+                            window.error12Count++;
+                        } else if (aaabbb.errorCode == '50') {
+                            btn1.style.color = '#ff0';
+
+                        }
+                    } else {
+                        window.errorCode = 0;
+                        window.error12Count = 0;
+                        window.successCount++;
+                        btn1.style.color = '#fff';
+
+
+                    }
+                    console.log(aaabbb);
+                    successHd(data);
+                };
+            }
+            window.ajaxInj(a, b);
+        };
+        //     monitorEvents(document);
+    }
     // process();
 })();
