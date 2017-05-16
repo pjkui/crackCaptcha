@@ -216,7 +216,7 @@
         console.log('slideTop' + slideBlockSize.top);
 
         window.positionX = positionX;
-        document.body.removeChild(canvas);        
+        document.body.removeChild(canvas);
         return positionX;
     };
     window.processImg = process;
@@ -348,7 +348,7 @@
         if (stepNum === 0) {
             //generate random steps
             window.stepsFunc = [step1, step2, step3, step4, step5, stepNoop];
-            var randStep = parseInt(30 * Math.random()+50);
+            var randStep = parseInt(30 * Math.random() + 50);
             for (var i = 0; i < randStep; ++i) {
                 window.stepsFunc.splice(3, 0, stepRand);
             }
@@ -367,13 +367,13 @@
         window.count++;
         if (window.error12Count && window.error12Count > 2) {
             // window.parent.window.postMessage('refresh', 'http://game.captcha.qq.com');
-            parent.postMessage('reloadIt', 'http://game.captcha.qq.com')
+            parent.postMessage('reloadIt', 'http://game.captcha.qq.com');
             //parent reload
             btn1.style.color = 'red';
         } else {
 
             if (stepNum > 3 && stepNum < stepsFunc.length - 3) {
-                var time = parseInt(80 * Math.random+100);
+                var time = parseInt(80 * Math.random + 100);
                 setTimeout(function () {
                     crackIt();
                 }, time);
@@ -407,7 +407,7 @@
     window.move = move;
     document.xPos = -1;
 
-    setTimeout(crackIt, 500);
+    // setTimeout(crackIt, 500);
 
     if (window.ajaxInj == null) {
         console.log('-----------ajax------------------');
@@ -449,8 +449,6 @@
                         window.error12Count = 0;
                         window.successCount++;
                         btn1.style.color = '#fff';
-
-
                     }
                     console.log(aaabbb);
                     successHd(data);
@@ -460,5 +458,172 @@
         };
         //     monitorEvents(document);
     }
+
+    function generateIP() {
+        var ipStr = 10 + '.' + parseInt(128 + 126 * Math.random()) + '.' + parseInt(128 + 126 * Math.random()) + '.' + parseInt(128 + 126 * Math.random());
+        return ipStr;
+    }
+
+    function generateUserAgent() {
+        var type = parseInt(5 * Math.random());
+        var agentStr = '';
+        switch (type) {
+            case 0:
+                {
+                    agentStr = 'msie/' + parseInt(9 + 3 * Math.random()) + '.' + parseInt(5 + 100 * Math.random()) + '.' + parseInt(100 * Math.random()) + '.' + parseInt(100 * Math.random());
+                    break;
+                }
+            case 1:
+                {
+                    agentStr = 'firefox/' + parseInt(5 + 49 * Math.random()) + '.' + parseInt(5 + 100 * Math.random()) + '.' + parseInt(100 * Math.random());
+                    break;
+                }
+            case 2:
+                {
+                    agentStr = 'chrome/' + parseInt(50 + 4 * Math.random()) + '.' + parseInt(5 + 100 * Math.random()) + '.' + parseInt(10000 * Math.random()) + '.' + parseInt(100 * Math.random());
+                    break;
+                }
+            case 3:
+                {
+                    agentStr = 'safari/' + parseInt(5 + 49 * Math.random()) + '.' + parseInt(5 + 100 * Math.random()) + '.' + parseInt(100 * Math.random());
+                    break;
+                }
+
+            default:
+                {
+                    agentStr = 'chrome/' + parseInt(50 + 4 * Math.random()) + '.' + parseInt(5 + 100 * Math.random()) + '.' + parseInt(10000 * Math.random()) + '.' + parseInt(100 * Math.random());
+                    break;
+                }
+        }
+        return agentStr;
+    }
+
+    function generateScreenInfo() {
+        var type = parseInt(6 * Math.random());
+        var info = '1920-1080-1080-24-*-*-*';
+        var resolutionx = 1920;
+        var resolutiony = 1080;
+
+        switch (type) {
+            case 0:
+                {
+                    resolutionx = 1920;
+                    resolutiony = 1080;
+                    break;
+                }
+            case 1:
+                {
+                    resolutionx = 1280;
+                    resolutiony = 768;
+                    break;
+                }
+            case 2:
+                {
+                    resolutionx = 1440;
+                    resolutiony = 900;
+                    break;
+                }
+            case 3:
+                {
+                    resolutionx = 1600;
+                    resolutiony = 1200;
+                    break;
+                }
+            case 4:
+                {
+                    resolutionx = 1024;
+                    resolutiony = 768;
+                    break;
+                }
+            case 5:
+                {
+                    resolutionx = 1280;
+                    resolutiony = 720;
+                    break;
+                }
+
+            default:
+                {
+                    resolutionx = 1920;
+                    resolutiony = 1080;
+                    break;
+                }
+        }
+        info = resolutionx + '-' + resolutiony + '-' + resolutiony + '-24-*-*-*';
+
+        return {
+            x: resolutionx,
+            y: resolutiony,
+            info: info
+        };
+    }
+
+    function generateOsInfo() {
+        var type = parseInt(6 * Math.random());
+        var str = '';
+        switch (type) {
+            case 0:
+                {
+                    str = 'Win7';
+                    break;
+                }
+            case 1:
+                {
+                    str = 'Win8';
+                    break;
+                }
+            case 2:
+                {
+                    str = 'Win10';
+                    break;
+                }
+            default:
+                {
+                    str = 'Win7';
+                }
+        }
+        return str;
+    }
+    if (window.jsonf == null) {
+        window.jsonf = JSON.stringify;
+        JSON.stringify = function (data) {
+            if (data.hasOwnProperty('ptcz')) {
+                console.log(data);
+                data.ips.in = [generateIP()];
+                data.user_Agent = generateUserAgent();
+                var sci = generateScreenInfo();
+                data.resolutionx = sci.x;
+                data.resolutiony = sci.y;
+                data.screenInfo = sci.info;
+                data.platform = 1;
+                data.pluginNum = parseInt(3 * Math.random());
+
+                if (data.trycnt > 1) {
+
+                    data.trycnt = 1;
+                }
+                // data.bSimutor = 1;
+                data.os = generateOsInfo();
+                if (data.mouseUpValue.length > 1) {
+                    data.mouseUpValue = [{
+                        t: 1,
+                        x: parseInt(window.positionX / 2 + 35),
+                        y: startPosY
+                    }];
+                }
+                data.mouseUpCnt = 1;
+
+                data.mouseDownValue.length = 1;
+                data.mouseDownCnt = 1;
+
+                data.keyUpCnt = 0;
+                data.keyUpValue = [];
+
+                console.log(data);
+            }
+            return window.jsonf(data);
+        };
+    }
+
     // process();
 })();
